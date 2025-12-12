@@ -8,10 +8,10 @@ Denna guide visar hur du bygger en enkel Single Page Application (SPA) från scr
 2. [Projektstruktur](#2-projektstruktur)
 3. [Steg 1: Grundläggande HTML](#steg-1-grundläggande-html)
 4. [Steg 2: TypeScript Konfiguration](#steg-2-typescript-konfiguration)
-5. [Steg 3: Routing System](#steg-3-routing-system)
+5. [Steg 3: Routing](#steg-3-routing)
 6. [Steg 4: Statiska Sidor](#steg-4-statiska-sidor)
-7. [Steg 5: Dynamiska Sidor](#steg-5-dynamiska-sidor)
-8. [Steg 6: State Management](#steg-6-state-management)
+7. [Steg 5: Dynamiska Sidor med Lokal State](#steg-5-dynamiska-sidor-med-lokal-state)
+8. [Steg 6: Global State med Store-klassen](#steg-6-global-state-med-store-klassen)
 9. [Steg 7: Navigation](#steg-7-navigation)
 10. [Steg 8: Styling](#steg-8-styling)
 
@@ -274,15 +274,15 @@ Statiska sidor är enkla HTML-filer som importeras som strängar.
 
 ---
 
-## Steg 5: Dynamiska Sidor
+## Steg 5: Dynamiska Sidor med Lokal State
 
-Dynamiska sidor skapas med TypeScript-funktioner som returnerar HTMLElement. I detta exempel använder vi **lokal state** för enkelhetens skull. I Steg 6 visar vi hur du kan använda **global state** istället.
+Dynamiska sidor skapas med TypeScript-funktioner som returnerar HTMLElement. Vi börjar med **lokal state** - enkelt och perfekt för komponenter som bara behöver state lokalt.
 
 ### `src/views/about/index.ts` (med lokal state)
 
 ```typescript
 export default function about() {
-  let count = 1; // Lokal state
+  let count = 1; // Lokal state - finns bara i denna funktion
 
   // Skapa huvudcontainern
   const about = document.createElement("div");
@@ -338,15 +338,28 @@ export default function about() {
 - `addEventListener()` - lägger till event handlers
 - Funktionen returnerar ett `HTMLElement` som kan injiceras i DOM:en
 
-**Notera:** Med lokal state försvinner state när du navigerar bort från sidan. För att bevara state vid navigation, använd global state (se Steg 6).
+**Fördelar med lokal state:**
+- ✅ Enkelt och direkt
+- ✅ Ingen extra kod behövs
+- ✅ Perfekt för isolerad komponent-state
+
+**Nackdelar med lokal state:**
+- ❌ State försvinner när du navigerar bort från sidan
+- ❌ State kan inte delas mellan komponenter
+- ❌ State återställs varje gång komponenten renderas om
+
+**När ska du använda lokal state?**
+- När state bara behövs i en komponent
+- När state inte behöver bevaras vid navigation
+- För enkla, isolerade interaktioner
 
 ---
 
-## Steg 6: State Management
+## Steg 6: Global State med Store-klassen
 
-För mer komplexa applikationer kan du använda en enkel state management-lösning.
+Om du behöver dela state mellan komponenter eller bevara state vid navigation, kan du använda en **Store-klass** för global state management.
 
-### `src/lib/store.ts`
+### Skapa Store-klassen: `src/lib/store.ts`
 
 ```typescript
 class Store {
@@ -366,7 +379,7 @@ class Store {
 
   setCount(newCount: number) {
     this.state.count = newCount;
-    this.triggerRender();
+    this.triggerRender(); // Automatisk re-rendering när state ändras
   }
 
   setRenderCallback(renderApp: () => void) {
@@ -380,24 +393,34 @@ class Store {
   }
 }
 
+// Skapa en singleton-instans (skapas bara en gång)
 const store = new Store();
 
-// Exportera bound methods
+// Exportera bound methods så att de alltid refererar till samma store-instans
 export const getCount = store.getCount.bind(store);
 export const setCount = store.setCount.bind(store);
 export const setRenderCallback = store.setRenderCallback.bind(store);
 ```
 
-**Användning i `main.ts`:**
+**Förklaring:**
+- `Store` är en klass som håller state privat
+- `const store = new Store()` skapas **en gång** när modulen laddas (singleton)
+- Exporterade funktioner är "bound" till store-instansen
+- `triggerRender()` anropas automatiskt när state ändras
+
+### Koppla Store till appen: `src/main.ts`
 
 ```typescript
 import { setRenderCallback } from "./lib/store.ts";
 
-// I renderApp-funktionen:
+// ... resten av koden ...
+
+// Koppla store till render-funktionen
+// Nu kommer store att kunna trigga re-rendering automatiskt
 setRenderCallback(renderApp);
 ```
 
-**Användning i komponenter (t.ex. `about/index.ts`):**
+### Använd global state i komponenter: `src/views/about/index.ts`
 
 ```typescript
 import { getCount, setCount } from "../../lib/store.ts";
@@ -406,55 +429,119 @@ export default function about() {
   const about = document.createElement("div");
   about.classList.add("about");
   
+  // Hämta initial state från store
+  const currentCount = getCount();
+  
+  // Sätt HTML-innehåll med initial state
   about.innerHTML = `
     <h2>how many boats?</h2>
-    <h2 id="boatHeading">⛵️</h2>
+    <h2 id="boatHeading">${Array.from({ length: currentCount }, (_) => "⛵️").join("") || "no boats"}</h2>
     <div class="buttons">
       <button id="incrementButton">Add boats</button>
       <button id="decrementButton">Remove boats</button>
     </div>
   `;
 
-  const boatHeading = about.querySelector<HTMLHeadingElement>("#boatHeading")!;
   const incrementButton = about.querySelector<HTMLButtonElement>("#incrementButton")!;
   const decrementButton = about.querySelector<HTMLButtonElement>("#decrementButton")!;
 
-  // Funktion som uppdaterar UI baserat på global state
-  const updateBoats = () => {
-    const currentCount = getCount(); // Hämta från global state
-    boatHeading.innerHTML = 
-      Array.from({ length: currentCount }, (_) => "⛵️").join("") || "no boats";
-    decrementButton.disabled = currentCount === 0;
-  };
-
   // Event listeners - använder global state
   incrementButton.addEventListener("click", () => {
-    const currentCount = getCount();
-    setCount(currentCount + 1); // Uppdatera global state
+    const currentCount = getCount(); // Läs från store
+    setCount(currentCount + 1); // Uppdatera store
     // renderApp() triggas automatiskt av setCount()
+    // about() körs om helt med nytt state
   });
 
   decrementButton.addEventListener("click", () => {
-    const currentCount = getCount();
+    const currentCount = getCount(); // Läs från store
     if (currentCount > 0) {
-      setCount(currentCount - 1); // Uppdatera global state
+      setCount(currentCount - 1); // Uppdatera store
+      // renderApp() triggas automatiskt av setCount()
     }
   });
 
-  updateBoats(); // Initial uppdatering
   return about;
 }
 ```
 
 **Fördelar med global state:**
 - ✅ State delas mellan komponenter
+- ✅ State bevaras vid navigation (tillsammans med navigation-hantering)
 - ✅ Automatisk re-rendering när state ändras
 - ✅ Centraliserad state-hantering
+- ✅ Store är en singleton - skapas bara en gång
 
+**När ska du använda global state?**
+- När state behöver delas mellan flera komponenter
+- När state ska bevaras vid navigation
+- För applikations-bred state (användare, inställningar, etc.)
+
+**Viktigt:** För att state ska bevaras vid navigation måste du också ha navigation-hantering (se Steg 7)!
 
 ---
 
-## Steg 7: Styling
+## Steg 7: Navigation
+
+För att hantera navigation behöver vi intercepta länkar och använda History API. **Detta är kritiskt för att bevara state!**
+
+### Varför behövs detta?
+
+Utan navigation-hantering kommer länkar att ladda om hela sidan, vilket innebär:
+- ❌ All JavaScript körs om från början
+- ❌ Store skapas på nytt med initial state
+- ❌ All state förloras (t.ex. räknaren återställs till 1)
+- ❌ SPA-funktionaliteten bryts
+
+Med navigation-hantering:
+- ✅ Sidan laddas inte om
+- ✅ State bevaras i store
+- ✅ Snabb, smidig navigation
+- ✅ Fungerar som en riktig SPA
+
+### Uppdatera `src/main.ts`
+
+Lägg till navigation-hantering efter `popstate`-event listener:
+
+```typescript
+// Rerender-logic 
+// Om sidan ändras, rerenderas appen
+window.addEventListener("popstate", () => {
+  renderApp();
+});
+
+// Intercepta länkar och hantera navigation
+// Detta förhindrar att sidan laddas om och bevarar state
+document.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement;
+  const link = target.closest("a");
+  
+  if (link && link.href.startsWith(window.location.origin)) {
+    e.preventDefault();
+    const path = new URL(link.href).pathname;
+    window.history.pushState({}, "", path);
+    renderApp();
+  }
+});
+
+// Set render callback
+setRenderCallback(renderApp);
+```
+
+**Förklaring:**
+- `closest("a")` - hittar närmaste länk-element (fungerar även om klicket är på ett barn-element)
+- `startsWith(window.location.origin)` - kontrollerar att länken är intern (samma domän)
+- `preventDefault()` - förhindrar standard browser-navigation (sidan laddas inte om)
+- `pushState()` - uppdaterar URL utan att ladda om sidan
+- `renderApp()` - renderar om sidan med nytt innehåll
+
+**Exempel:** Om du uppdaterar antal båtar till 5, navigerar till Home, och sedan tillbaka till About, kommer båtantalet fortfarande vara 5 eftersom state bevaras i store.
+
+**Viktigt:** Denna kod måste finnas för att state ska bevaras vid navigation!
+
+---
+
+## Steg 8: Styling
 
 ### `src/global.css` - Design System
 
