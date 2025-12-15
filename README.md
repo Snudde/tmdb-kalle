@@ -32,7 +32,7 @@ src/
 
 ### 1. Söka och browsa bland filmer (`/` eller `/browse`)
 
-**Visa och söka bland en lista med filmer från TMDB‑API:t:**
+**Använd fetch() för att hämta från TMDB‑API:et:**
 
 - Utan sökterm:
   - Visa en lista med filmer (t.ex. "Popular" från TMDB som standardläge)
@@ -97,7 +97,7 @@ src/
 
 ## 🏗️ Tekniska instruktioner
 
-### Hur du använder TMDB för att hämta filmdata
+### 1. Hur du använder TMDB för att hämta filmdata
 
 - [The Movie Database (TMDB) API](https://www.themoviedb.org/settings/api) – gratis och bra dokumentation
 
@@ -108,6 +108,7 @@ Kom igång med TMDB på [denna länk](https://developer.themoviedb.org/docs/gett
 
 Skapa en API‑service‑modul (`src/services/tmdbApi.ts`):
 
+```
 // Konfiguration
 
 const TMDB_API_KEY = 'your_api_key_here';
@@ -116,18 +117,15 @@ const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 ```
 Läs mer under [Getting Started](api.themoviedb.org)
 
-```
 
-
-
-### State Management
+### 2. State Management
 
 Bygg ut `Store`‑klassen så att den kan hantera **allt centralt film‑state** (browse‑lista, watchlist, watched, vald film, loading‑status) och anropa en render‑funktion när state ändras.
 
 Lokalt state (t.ex. i vyer/komponenter) kan du fortfarande använda för små, temporära saker – som öppna/stängda modaler, formulärfält eller vilken flik som är aktiv – men **delad data mellan vyer** ska ligga i `Store`.
 
 
-### Använda TypeScript
+### 3. Använda TypeScript
 
 - Definiera tydliga interfaces/typer för alla datastrukturer
 - Ingen `any` (använd `unknown` vid behov)
@@ -158,10 +156,9 @@ interface AppState {
 }
 ```
 
-```typescript
 
 
-### Backend‑API‑integration
+### 4. Backend‑API‑integration
 
 Istället för att använda `localStorage` ska du nu prata med ett riktigt Express‑backend‑API:
 
@@ -194,7 +191,7 @@ export async function getWatchlist(): Promise<Movie[]> {
 ```
 
 
-### Felhantering
+### 5. Felhantering
 
 - Visa användarvänliga felmeddelanden när API‑anrop misslyckas
 - Hantera loading‑state med t.ex. spinner eller skeleton‑UI
