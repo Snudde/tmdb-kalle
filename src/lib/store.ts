@@ -1,34 +1,58 @@
-// src/lib/store.ts – exempel
-// Importera types eller interfaces som behövs!
-import type { Movie } from "../types/movie";
+import type { TMDBMovie } from "../types/movie";
+import { getMovies as getPopularMoviesFromAPI } from "../services/tmdbApi";
 
+class Store {
+  renderCallback: () => void;
 
-  class Store {
-    private state: { watchlist: Movie[] } = { watchlist: [] };
-    private renderCallback: (() => void) | null = null;
+  
+  // TMDB API state
+  popularMovies: TMDBMovie[] = [];
+  constructor() {
+    this.renderCallback = () => {};
+  }
 
-    // Definera metoder för att hantera state
-    setWatchlist(movies: Movie[]) {
-      this.state.watchlist = movies;
-      this.triggerRender(); // Viktigt: uppdatera UI när state ändras
-    }
-
-    getWatchlist() {
-      return this.state.watchlist;
-    }
-
-
-    setRenderCallback(renderApp: () => void) {
-      this.renderCallback = renderApp;
-    }
-
-    private triggerRender() {
-      this.renderCallback?.();
+  async loadPopularMoviesTMDB(shouldTriggerRender: boolean = true) {
+    try {
+      this.popularMovies = await getPopularMoviesFromAPI();
+      if (shouldTriggerRender) {
+        this.triggerRender();
+      }
     }
   }
 
+
+  // LOADER (async) - för bakåtkompatibilitet
+
+  async loadPopularMovies(shouldTriggerRender: boolean = true) {
+    try {
+      this.popularMovies = await getPopularMoviesFromAPI();
+      if (shouldTriggerRender) {
+        this.triggerRender();
+      }
+      
+      return this.popularMovies;
+    } catch (error) {
+      console.error("Failed to load popular movies:", error);
+      return [];
+    }
+  }
+
+
+  // ========== RENDER CALLBACK ==========
+  
+  setRenderCallback(renderApp: () => void) {
+    this.renderCallback = renderApp;
+  }
+
+  triggerRender() {
+    if (this.renderCallback) {
+      this.renderCallback();
+    }
+  }
+}
+
 const store = new Store();
-// Exportera funktioner för att hantera state
-export const setWatchlist = store.setWatchlist.bind(store);
-export const getWatchlist = store.getWatchlist.bind(store);
+
+
+export const loadPopularMovies = store.loadPopularMovies.bind(store);  // Async
 export const setRenderCallback = store.setRenderCallback.bind(store);
