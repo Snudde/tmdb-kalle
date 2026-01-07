@@ -19,6 +19,41 @@ interface TMDBSearchResponse {
   page: number;
 }
 
+interface TMDBMovieDetails extends TMDBMovieResponse {
+  runtime: number;
+  genres: { id: number; name: string }[];
+  tagline: string;
+  backdrop_path: string | null;
+}
+
+// Hämta detaljerad filminfo
+export async function getMovieDetails(
+  movieId: number
+): Promise<TMDBMovieDetails | null> {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=en-US`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch movie details");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching movie details:", error);
+    return null;
+  }
+}
+
+// Hjälpfunktion för backdrop-bilder (stor bild)
+export function getBackdropUrl(backdropPath: string | null): string {
+  if (!backdropPath) {
+    return "https://via.placeholder.com/1280x720?text=No+Image";
+  }
+  return `https://image.tmdb.org/t/p/w1280${backdropPath}`;
+}
+
 // Hämta populära filmer
 export async function getPopularMoviesTMDB(): Promise<TMDBMovieResponse[]> {
   try {

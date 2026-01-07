@@ -1,5 +1,9 @@
 import type { TMDBMovie, DatabaseMovie } from "../types/movie";
-import { getPopularMoviesTMDB, searchMoviesTMDB } from "../services/tmdbApi";
+import {
+  getPopularMoviesTMDB,
+  searchMoviesTMDB,
+  getMovieDetails,
+} from "../services/tmdbApi";
 import {
   getWatchlistMovies,
   getWatchedMovies,
@@ -17,6 +21,10 @@ class Store {
   searchQuery: string = "";
   isLoading: boolean = false;
 
+  selectedMovieId: number | null = null;
+  selectedMovieDetails: any = null; // TMDB details
+  isLoadingDetails: boolean = false;
+
   // Backend filmer (watchlist & watched)
   watchlistMovies: DatabaseMovie[] = [];
   watchedMovies: DatabaseMovie[] = [];
@@ -29,6 +37,29 @@ class Store {
   }
 
   // ========== TMDB BROWSE ==========
+
+  // Öppna movie details modal
+  async openMovieDetails(tmdbId: number) {
+    this.selectedMovieId = tmdbId;
+    this.isLoadingDetails = true;
+    this.triggerRender();
+
+    try {
+      this.selectedMovieDetails = await getMovieDetails(tmdbId);
+    } catch (error) {
+      console.error("Failed to load movie details:", error);
+    } finally {
+      this.isLoadingDetails = false;
+      this.triggerRender();
+    }
+  }
+
+  // Stäng modal
+  closeMovieDetails() {
+    this.selectedMovieId = null;
+    this.selectedMovieDetails = null;
+    this.triggerRender();
+  }
 
   async loadPopularMovies() {
     this.isLoading = true;
@@ -242,5 +273,7 @@ export const updateMovie = store.updateMovie.bind(store);
 export const setWatchedFilter = store.setWatchedFilter.bind(store);
 export const getFilteredWatchedMovies =
   store.getFilteredWatchedMovies.bind(store);
+export const openMovieDetails = store.openMovieDetails.bind(store);
+export const closeMovieDetails = store.closeMovieDetails.bind(store);
 
 export default store;

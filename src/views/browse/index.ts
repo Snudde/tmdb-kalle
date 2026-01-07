@@ -7,6 +7,7 @@ import {
 } from "../../lib/store";
 import { getImageUrl } from "../../services/tmdbApi";
 import type { TMDBMovie } from "../../types/movie";
+import { openMovieDetails } from "../../lib/store";
 
 export default function browse(): HTMLElement {
   const container = document.createElement("div");
@@ -161,10 +162,7 @@ function attachEventListeners(container: HTMLElement) {
           await markAsWatched(movie);
           break;
         case "details":
-          // TODO: Implementera details-modal/sida
-          alert(`Details for: ${movie.title}\n\nComing soon!`);
-          target.disabled = false;
-          target.textContent = originalText;
+          openMovieDetails(movieId);
           break;
       }
     } catch (error) {

@@ -5,3 +5,4 @@
 @import "./views/watchlist/style.css";
 @import "./views/browse/style.css";
 @import "./views/watched/style.css";
+@import "./components/MovieDetailsModal.css";

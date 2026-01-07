@@ -1,4 +1,5 @@
 import "./style.css";
+import "./style.css";
 import {
   setRenderCallback,
   loadPopularMovies,
@@ -12,9 +13,13 @@ import footerHTML from "./views/static/footer/index.html?raw";
 
 // Dynamiska sidor
 import browse from "./views/browse/index.ts";
-import watchlist from "./views/watchlist/index.ts"; // ← Ny import
+import watchlist from "./views/watchlist/index.ts";
+import watched from "./views/watched/index.ts";
 
-import watched from "./views/watched/index.ts"; // ← Ny import
+// Modal
+import MovieDetailsModal from "./components/MovieDetailsModal.ts"; // ← Ny import
+
+import store from "./lib/store.ts"; // ← Lägg till
 
 const currentPage = (): string | HTMLElement => {
   const path = window.location.pathname;
@@ -24,7 +29,7 @@ const currentPage = (): string | HTMLElement => {
       return browse();
     case "/watchlist":
       return watchlist();
-    case "/watched": // ← Ny route
+    case "/watched":
       return watched();
     default:
       return "404";
@@ -44,6 +49,17 @@ const renderApp = () => {
   } else {
     app.innerHTML = `${headerHTML} ${footerHTML}`;
     app.insertBefore(page, app.querySelector("footer")!);
+  }
+
+  // Rendera modal om den är öppen
+  const existingModal = document.querySelector(".modal-overlay");
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  const modal = MovieDetailsModal();
+  if (modal) {
+    document.body.appendChild(modal);
   }
 };
 

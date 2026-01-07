@@ -2,6 +2,7 @@ import store from "../../lib/store";
 import { markAsWatched, findTMDBMovie } from "../../lib/store";
 import { getImageUrl } from "../../services/tmdbApi";
 import type { DatabaseMovie, TMDBMovie } from "../../types/movie";
+import { openMovieDetails } from "../../lib/store";
 
 export default function watchlist(): HTMLElement {
   const container = document.createElement("div");
@@ -145,9 +146,7 @@ function attachEventListeners(container: HTMLElement) {
           break;
 
         case "details":
-          alert(`Details for movie ID: ${movieId}\n\nComing soon!`);
-          target.disabled = false;
-          target.textContent = originalText;
+          openMovieDetails(movieId);
           break;
       }
     } catch (error) {
