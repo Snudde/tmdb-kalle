@@ -1,31 +1,28 @@
 header {
   background-color: var(--color-primary);
-  color: var(--color-text-inverse);
+  color: white;
   padding: var(--spacing-md);
 }
 
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+header h1 {
+  margin: 0 0 1rem 0;
 }
 
 nav ul {
   display: flex;
   list-style: none;
-  gap: var(--spacing-md);
-}
-
-nav ul li {
-  display: inline-block;
+  gap: 1.5rem;
+  padding: 0;
+  margin: 0;
 }
 
 nav ul li a {
   text-decoration: none;
-  color: var(--color-text-inverse);
+  color: white;
+  font-weight: 500;
+  transition: opacity 0.2s;
 }
 
 nav ul li a:hover {
-  color: var(--color-primary-light);
+  opacity: 0.8;
 }
-

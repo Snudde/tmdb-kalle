@@ -5,6 +5,8 @@ import {
   getWatchedMovies,
   addToWatchlist as apiAddToWatchlist,
   markAsWatched as apiMarkAsWatched,
+  deleteMovie as apiDeleteMovie,
+  updateMovie as apiUpdateMovie, // ← Lägg till denna
 } from "../services/movieApi";
 
 class Store {
@@ -18,6 +20,9 @@ class Store {
   // Backend filmer (watchlist & watched)
   watchlistMovies: DatabaseMovie[] = [];
   watchedMovies: DatabaseMovie[] = [];
+
+  // Filter state för watched
+  watchedFilter: "all" | "favorites" | "5" | "4" | "3" | "2" | "1" = "all";
 
   constructor() {
     this.renderCallback = () => {};
@@ -55,6 +60,62 @@ class Store {
     }
   }
 
+  // Ta bort film
+  async deleteMovie(movieId: number) {
+    try {
+      const success = await apiDeleteMovie(movieId);
+      if (success) {
+        // Ta bort från watchlist eller watched
+        this.watchlistMovies = this.watchlistMovies.filter(
+          (m) => m.id !== movieId
+        );
+        this.watchedMovies = this.watchedMovies.filter((m) => m.id !== movieId);
+        this.triggerRender();
+      }
+    } catch (error) {
+      console.error("Error deleting movie:", error);
+      alert("Failed to delete movie");
+    }
+  }
+
+  // Uppdatera film (för rating, review, favorite)
+  async updateMovie(movieId: number, updates: Partial<DatabaseMovie>) {
+    try {
+      const result = await apiUpdateMovie(movieId, updates);
+      if (result) {
+        // Uppdatera i watched-listan
+        const index = this.watchedMovies.findIndex((m) => m.id === movieId);
+        if (index >= 0) {
+          this.watchedMovies[index] = result;
+        }
+        this.triggerRender();
+      }
+    } catch (error) {
+      console.error("Error updating movie:", error);
+      alert("Failed to update movie");
+    }
+  }
+
+  // Sätt filter för watched
+  setWatchedFilter(filter: "all" | "favorites" | "5" | "4" | "3" | "2" | "1") {
+    this.watchedFilter = filter;
+    this.triggerRender();
+  }
+
+  // Hämta filtrerade watched-filmer
+  getFilteredWatchedMovies(): DatabaseMovie[] {
+    let filtered = [...this.watchedMovies];
+
+    if (this.watchedFilter === "favorites") {
+      filtered = filtered.filter((m) => m.is_favorite === 1);
+    } else if (this.watchedFilter !== "all") {
+      const rating = parseInt(this.watchedFilter);
+      filtered = filtered.filter((m) => m.personal_rating === rating);
+    }
+
+    return filtered;
+  }
+
   // ========== BACKEND INTEGRATION ==========
 
   // Ladda watchlist från backend
@@ -75,6 +136,12 @@ class Store {
     } catch (error) {
       console.error("Failed to load watched movies:", error);
     }
+  }
+
+  findDatabaseMovie(tmdbId: number): DatabaseMovie | undefined {
+    return [...this.watchlistMovies, ...this.watchedMovies].find(
+      (m) => m.tmdb_id === tmdbId
+    );
   }
 
   // Lägg till i watchlist
@@ -170,5 +237,10 @@ export const getMovieStatus = store.getMovieStatus.bind(store);
 export const findTMDBMovie = store.findTMDBMovie.bind(store);
 export const setRenderCallback = store.setRenderCallback.bind(store);
 export const findDatabaseMovie = store.findDatabaseMovie.bind(store);
+export const deleteMovie = store.deleteMovie.bind(store);
+export const updateMovie = store.updateMovie.bind(store);
+export const setWatchedFilter = store.setWatchedFilter.bind(store);
+export const getFilteredWatchedMovies =
+  store.getFilteredWatchedMovies.bind(store);
 
 export default store;

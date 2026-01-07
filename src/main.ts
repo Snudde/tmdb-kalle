@@ -8,11 +8,13 @@ import {
 
 // Statiska sidor
 import headerHTML from "./views/static/header/index.html?raw";
-import homeHTML from "./views/static/home/index.html?raw";
 import footerHTML from "./views/static/footer/index.html?raw";
 
 // Dynamiska sidor
 import browse from "./views/browse/index.ts";
+import watchlist from "./views/watchlist/index.ts"; // ← Ny import
+
+import watched from "./views/watched/index.ts"; // ← Ny import
 
 const currentPage = (): string | HTMLElement => {
   const path = window.location.pathname;
@@ -20,6 +22,10 @@ const currentPage = (): string | HTMLElement => {
     case "/":
     case "/browse":
       return browse();
+    case "/watchlist":
+      return watchlist();
+    case "/watched": // ← Ny route
+      return watched();
     default:
       return "404";
   }
@@ -43,17 +49,18 @@ const renderApp = () => {
 
 // Initialisera appen
 renderApp();
-loadPopularMovies(); // Ladda filmer när appen startar
+
+// Ladda all data när appen startar
+async function initializeApp() {
+  await Promise.all([loadPopularMovies(), loadWatchlist(), loadWatched()]);
+}
+
+initializeApp();
 
 // Rerender-logic
 window.addEventListener("popstate", () => {
   renderApp();
 });
-
-async function initializeApp() {
-  await Promise.all([loadPopularMovies(), loadWatchlist(), loadWatched()]);
-}
-initializeApp();
 
 // Intercepta länkar
 document.addEventListener("click", (e) => {

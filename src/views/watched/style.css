@@ -1,0 +1,162 @@
+.watched {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Header */
+.watched__header {
+  margin-bottom: 2rem;
+}
+
+.watched__title h2 {
+  font-size: 2rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.watched__count {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0 0 1rem 0;
+}
+
+/* Filters */
+.watched__filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.filter-btn.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+/* Empty state */
+.watched__empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* Movie card specifics */
+.movie-card--watched {
+  border: 2px solid #2196f3;
+}
+
+.movie-card__favorite-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 215, 0, 0.95);
+  color: #333;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Rating section */
+.movie-card__rating-section {
+  margin: 1rem 0;
+}
+
+.movie-card__rating-section label {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 0.25rem;
+  font-size: 1.5rem;
+}
+
+.star {
+  cursor: pointer;
+  color: #ddd;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.star.filled {
+  color: #ffd700;
+}
+
+.star:hover,
+.star:hover ~ .star {
+  color: #ffed4e;
+}
+
+/* Review preview */
+.movie-card__review-preview {
+  background: #f5f5f5;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.movie-card__review-preview p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Buttons */
+.btn--favorite {
+  background: #fff;
+  border: 2px solid #ffd700;
+  color: #333;
+}
+
+.btn--favorite:hover {
+  background: #fffacd;
+}
+
+.btn--favorite.active {
+  background: #ffd700;
+  color: #333;
+  font-weight: bold;
+}
+
+.btn--danger {
+  background: #f44336;
+  color: white;
+}
+
+.btn--danger:hover {
+  background: #d32f2f;
+}
+
+.movie-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.movie-card__actions .btn--favorite {
+  flex: 1;
+}
+
+.movie-card__actions .btn--small {
+  flex: 1;
+}

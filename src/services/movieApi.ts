@@ -171,7 +171,6 @@ export async function updateMovie(
     return await response.json();
   } catch (error) {
     console.error("Error updating movie:", error);
-    alert("Failed to update movie");
     return null;
   }
 }
