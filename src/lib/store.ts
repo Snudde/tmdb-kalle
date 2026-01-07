@@ -1,5 +1,5 @@
 import type { TMDBMovie } from "../types/movie";
-import { getMovies as getPopularMoviesFromAPI } from "../services/tmdbApi";
+import { getPopularMoviesTMDB  } from "../services/tmdbApi.ts";
 
 class Store {
   renderCallback: () => void;
@@ -11,21 +11,10 @@ class Store {
     this.renderCallback = () => {};
   }
 
-  async loadPopularMoviesTMDB(shouldTriggerRender: boolean = true) {
-    try {
-      this.popularMovies = await getPopularMoviesFromAPI();
-      if (shouldTriggerRender) {
-        this.triggerRender();
-      }
-    }
-  }
-
-
-  // LOADER (async) - för bakåtkompatibilitet
-
+  
   async loadPopularMovies(shouldTriggerRender: boolean = true) {
     try {
-      this.popularMovies = await getPopularMoviesFromAPI();
+      this.popularMovies = await getPopularMoviesTMDB();
       if (shouldTriggerRender) {
         this.triggerRender();
       }
